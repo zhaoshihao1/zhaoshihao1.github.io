@@ -1,6 +1,6 @@
 # Basic
-title: 赵士豪Mike
-subtitle: 个人站
+title: 赵士豪Mike2
+subtitle: Blog
 description: Welcome to my world~
 # 头像里面的标题
 avatarTitle: ZSH
@@ -62,14 +62,14 @@ cover_color: clear
 
 # The blog button should not be removed.
 blog_button:
-    title: 博客主页
+    title: Main page
 
 # Navigation buttons in the front page.s
 nav:
-    - {title: 所有文章, description: archive, url: '/archive'}   
-    - {title: 标签, description: tags, url: '/tags'}      
-    - {title: 技术支持, description: support, url: '/support'}      
-    - {title: 关于我, description: about, url: '/about'}   
+    - {title: Content, description: archive, url: '/archive'}   
+    - {title: Tags, description: tags, url: '/tags'}      
+    - {title: Support, description: support, url: '/support'}      
+    - {title: About me, description: about, url: '/about'}   
     
 
 # Pagination

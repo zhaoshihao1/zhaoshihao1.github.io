@@ -1,80 +1,133 @@
-# Basic
-title: 赵士豪Mike2
-subtitle: Blog
-description: Welcome to my world~
-# 头像里面的标题
-avatarTitle: ZSH
-# 头像里面的描述
-avatarDesc: Backend/Project Manager
-url: "https://github.com/zhaoshihao1/zhaoshihao1.github.io"
+# ---------------- #
+#   Main Configs   #
+# ---------------- #
+baseurl:
+url: https://zhaoshihao1.github.io
+date_format: "ordinal"
+title: SHIHAO ZHAO
+subtitle: "Weclome"
+keywords: McMaster, Shihao Zhao, 赵士豪
+timezone: Asia/Shanghai
+encoding: "utf-8"
+side_bar_repo_limit: 5
 
-# 博客是否自动生成目录，false为不生成
-enableToc: true
+# ---------------- #
+#      Author      #
+# ---------------- #
+author: Shihao Zhao
+organization: 
+organization_url: 
+github_username: zhaoshihao1
+location: Hamilton, Ontario, Canada
+email: zhaos1995@outlook.com
 
-# Comment
-# comment:
-# livere: MTAyMC81MDk5NC8yNzQ3Ng  # https://www.livere.com
-# disqus: 
-# uyan:   
-# 有言id,登录有言官网申请
+# ---------------- #
+#    Navigation    #
+# ---------------- #
+navs:
+  -
+    href: /
+    label: Home
 
-# Social
-social:
-    # weibo:  
-    github: zhaoshihao1
-    # zhihu: 
-    # juejin: 
-    # jianshu: 
-    # twitter: 
-    mail: zhaos1995@outlook.com
-
-
-# 百度统计 
-# 使用博客模板请去掉或者更换 id 
-# baidu:
-# id: 
-
-# Google Analytics
-# 使用博客模板请去掉或者更换 id
-# ga:
-# id:   
-# host: 
-
-
-# 《----------------- 上面的信息修改成你自己的 ---------------------------》
-#
-#
-#  _post/ 下的文章更换成你自己的文章
-#  
-#
-#
-# 《--------------- 下面的信息可以自行选择是否修改 ------------------------》
-
-
-permalink: /:year/:month/:title/
-# Format
-highlighter: rouge
-
-textColor: #FF0000
-
-# supported colors: blue, green, purple, red, orange or slate. If you need clear, leave it empty.
-cover_color: clear
-
-# The blog button should not be removed.
-blog_button:
-    title: Main page
-
-# Navigation buttons in the front page.s
-nav:
-    - {title: Content, description: archive, url: '/archive'}   
-    - {title: Tags, description: tags, url: '/tags'}      
-    - {title: Support, description: support, url: '/support'}      
-    - {title: About me, description: about, url: '/about'}   
+  -
+    href: /categories/
+    label: Category
     
+  -
+    href: /leetcode/
+    label: Leetcode
 
-# Pagination
-gems: [jekyll-paginate,jekyll-sitemap]
-paginate: 20
-paginate_path: "page/:num/"
+  -
+    href: /wiki/
+    label: Wiki
+
+  -
+    href: /links/
+    label: Link
+
+  -
+    href: /about/
+    label: About
+
+# ---------------- #
+#       RSS        #
+# ---------------- #
+subscribe_rss: /feed.xml
+
+# ---------------- #
+#      Jekyll      #
+# ---------------- #
+markdown: kramdown
+kramdown:
+    input: GFM
+highlighter: rouge
+paginate: 10
+lsi: false
+quiet: false
+excerpt_separator: "\n\n"
+permalink: /:year/:month/:day/:title/
+plugins:
+    - jekyll-github-metadata
+    - rouge
+#     - jekyll-html-pipeline
+    - jekyll-paginate
+    - jekyll-sitemap
+    - jekyll-feed
+    - jemoji
+#     - jekyll-mentions
+collections:
+    wiki:
+        output: true
+        permalink: /wiki/:path/
+    leetcode:
+        output: true
+        permalink: /leetcode/:path/
 
 
+repository: zhaoshihao1/zhaoshihao1.github.io
+
+# ---------------- #
+#      Comments    #
+# ---------------- #
+# support provider: disqus, gitment, gitalk
+comments_provider: gitalk
+# !!!重要!!! 请修改下面这些信息为你自己申请的
+# !!!Important!!! Please modify infos below to yours
+# https://disqus.com
+#disqus:
+#    username: 
+# https://imsun.net/posts/gitment-introduction/
+#gitment:
+#    owner: mzlogin
+#    repo: blog-comments
+#    oauth:
+#        client_id: d2e1cbbd298958076462
+#        client_secret: b42a4178e5fd4a7cf63189ef4b1453b05c375709
+# https://github.com/gitalk/gitalk#install
+gitalk:
+    owner: wenb1
+    repo: wenb1.github.io
+    clientID: c846625ee18611b57d96
+    clientSecret: 8e6ff134730f5c3ceb9c537c6f54cecbba0adff5
+# 在使用其它评论组件时可点击显示 Disqus
+#lazy_load_disqus : false
+
+# ---------------- #
+#      Search      #
+# ---------------- #
+simple_jekyll_search:
+    # 是否支持全文搜索
+    fulltext: false
+    # 最多显示多少条搜索结果
+    limit: 10
+
+# ---------------- #
+#      Google      #
+# ---------------- #
+google:
+    analytics_id: UA-80669434-1
+    adsense:
+        footer: true
+        sidebar: true 
+        content_header: true
+        content_footer: false

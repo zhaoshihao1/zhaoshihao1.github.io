@@ -1,4 +1,1 @@
----
-layout: page
-title: SHIHAO ZHAO's blog 
----
+Shihao Zhao's blog

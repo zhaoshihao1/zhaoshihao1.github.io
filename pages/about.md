@@ -2,13 +2,13 @@
 layout: page
 title: About
 description: Talk is cheap, show me your code
-keywords: Bo Wen, 问博
+keywords: Shihao Zhao, 赵士豪
 comments: true
 menu: 关于
 permalink: /about/
 ---
 
-I'm Bo Wen, a future master student in computing and software.
+I'm Shihao Zhao, a graduated student in computing engineering.
 
 Currenly living in Hamilton, Ontario, Canada.
 

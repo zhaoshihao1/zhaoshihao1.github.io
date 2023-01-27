@@ -10,7 +10,7 @@ permalink: /about/
 
 I'm Shihao Zhao, a graduated student in computing engineering.
 
-Currenly living in Hamilton, Ontario, Canada.
+Currenly living in Markham, Ontario, Canada.
 
 ## Contact(联系)
 

@@ -8,7 +8,7 @@ menu: 关于
 permalink: /about/
 ---
 
-I'm Shihao Zhao, a graduated student in computing engineering.
+I'm Shihao Zhao, a dreamer.
 
 Currenly living in Markham, Ontario, Canada.
 

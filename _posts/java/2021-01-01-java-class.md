@@ -1,3 +1,10 @@
+---
+layout: post
+title: 类class
+categories: Java
+description: 初识类
+keywords: Java 类
+---
 #类class
 ---
 一个模板，描述一类对象的行为和属性  

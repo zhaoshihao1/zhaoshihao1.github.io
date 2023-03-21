@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans" prefix="og: http://ogp.me/ns#" class="han-init">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <title>MySQL InnoDB数据页结构(Page Structure) &mdash; SHIHAO ZHAO</title>
+    <link rel="stylesheet" href="http://localhost:4000/assets/vendor/primer-css/css/primer.css">
+    <link rel="stylesheet" href="http://localhost:4000/assets/vendor/primer-markdown/dist/user-content.min.css">
+    <link rel="stylesheet" href="http://localhost:4000/assets/vendor/octicons/octicons/octicons.css">
+    <link rel="stylesheet" href="http://localhost:4000/assets/css/components/collection.css">
+    <link rel="stylesheet" href="http://localhost:4000/assets/css/components/repo-card.css">
+    <link rel="stylesheet" href="http://localhost:4000/assets/css/sections/repo-list.css">
+    <link rel="stylesheet" href="http://localhost:4000/assets/css/sections/mini-repo-list.css">
+    <link rel="stylesheet" href="http://localhost:4000/assets/css/components/boxed-group.css">
+    <link rel="stylesheet" href="http://localhost:4000/assets/css/globals/common.css">
+    <link rel="stylesheet" href="http://localhost:4000/assets/vendor/share.js/dist/css/share.min.css">
+    <link rel="stylesheet" href="http://localhost:4000/assets/css/globals/responsive.css">
+    <link rel="stylesheet" href="http://localhost:4000/assets/css/posts/index.css">
+    <!-- Latest compiled and minified CSS -->
+    
+
+    
+    <link rel="canonical" href="http://localhost:4000/2020/07/25/mysql-innodb-page/">
+    <link rel="alternate" type="application/atom+xml" title="SHIHAO ZHAO" href="http://localhost:4000/feed.xml">
+    <link rel="shortcut icon" href="http://localhost:4000/favicon.ico">
+    
+    <meta property="og:title" content="MySQL InnoDB数据页结构(Page Structure)">
+      
+    <meta name="keywords" content="MySQL, Database, 数据库">
+    <meta name="og:keywords" content="MySQL, Database, 数据库">
+      
+    <meta name="description" content="页是InnoDB管理存储空间的基本单位，一般一个页的大小是16KB。InnoDB为了实现不同的目的而设计了许多页，比如存放表空间头部信息的页，存放Insert Buffer信息的页等等。存放我们表中记录的页是索引页（index page），鉴于我们还没有了解过索引是个什么东西，而这些表中的记录就是我们日常口中所称的数据，所以目前还是叫这种存放记录的页为数据页吧。">
+    <meta name="og:description" content="页是InnoDB管理存储空间的基本单位，一般一个页的大小是16KB。InnoDB为了实现不同的目的而设计了许多页，比如存放表空间头部信息的页，存放Insert Buffer信息的页等等。存放我们表中记录的页是索引页（index page），鉴于我们还没有了解过索引是个什么东西，而这些表中的记录就是我们日常口中所称的数据，所以目前还是叫这种存放记录的页为数据页吧。">
+      
+    
+    
+        
+    
+    <meta property="og:url" content="http://localhost:4000/2020/07/25/mysql-innodb-page/">
+    <meta property="og:site_name" content="SHIHAO ZHAO">
+    <meta property="og:type" content="article">
+    <meta property="og:locale" content="zh_CN" />
+    
+    <meta property="article:published_time" content="2020-07-25">
+    
+    <script src="http://localhost:4000/assets/vendor/jquery/dist/jquery.min.js"></script>
+    <script src="http://localhost:4000/assets/js/jquery-ui.js"></script>
+    <script src="http://localhost:4000/assets/js/main.js"></script>
+
+    
+</head>
+<body class="" data-mz="">
+    <header class="site-header">
+        <div class="container">
+            <h1><a href="http://localhost:4000/" title="SHIHAO ZHAO"><span class="octicon octicon-mention"></span> SHIHAO ZHAO</a></h1>
+            <button class="collapsed mobile-visible" type="button" onclick="toggleMenu();">
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+            <nav class="site-header-nav" role="navigation">
+                
+                <a href="http://localhost:4000/" class=" site-header-nav-item" target="" title="Home">Home</a>
+                
+                <a href="http://localhost:4000/categories/" class=" site-header-nav-item" target="" title="Category">Category</a>
+                
+                <a href="http://localhost:4000/leetcode/" class=" site-header-nav-item" target="" title="Leetcode">Leetcode</a>
+                
+                <a href="http://localhost:4000/wiki/" class=" site-header-nav-item" target="" title="Wiki">Wiki</a>
+                
+                <a href="http://localhost:4000/links/" class=" site-header-nav-item" target="" title="Link">Link</a>
+                
+                <a href="http://localhost:4000/about/" class=" site-header-nav-item" target="" title="About">About</a>
+                
+            </nav>
+        </div>
+    </header>
+    <!-- / header -->
+
+    <section class="collection-head small geopattern" data-pattern-id="MySQL InnoDB数据页">
+<div class="container">
+  <div class="columns">
+    <div class="column three-fourths">
+      <div class="collection-title">
+        <h1 class="collection-header">MySQL InnoDB数据页结构(Page Structure)</h1>
+        <div class="collection-info">
+          
+          <span class="meta-info">
+            <span class="octicon octicon-calendar"></span> 2020/07/25
+          </span>
+          
+          
+          <span class="meta-info">
+            <span class="octicon octicon-file-directory"></span>
+            <a href="http://localhost:4000/categories/#MySQL" title="MySQL">MySQL</a>
+          </span>
+          
+        </div>
+      </div>
+    </div>
+    <div class="column one-fourths mobile-hidden">
+      <div class="collection-title">
+        
+
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+<!-- / .banner -->
+<section class="container content">
+<div class="columns">
+  <div class="column three-fourths" >
+    
+
+    <article class="article-content markdown-body">
+    <p><code class="language-plaintext highlighter-rouge">页</code>是<code class="language-plaintext highlighter-rouge">InnoDB</code>管理存储空间的基本单位，一般一个页的大小是<code class="language-plaintext highlighter-rouge">16KB</code>。<code class="language-plaintext highlighter-rouge">InnoDB</code>为了实现不同的目的而设计了许多页，比如存放表空间头部信息的页，存放<code class="language-plaintext highlighter-rouge">Insert Buffer</code>信息的页等等。存放我们表中记录的页是<code class="language-plaintext highlighter-rouge">索引页（index page）</code>，鉴于我们还没有了解过索引是个什么东西，而这些表中的记录就是我们日常口中所称的<code class="language-plaintext highlighter-rouge">数据</code>，所以目前还是叫这种存放记录的页为<code class="language-plaintext highlighter-rouge">数据页</code>吧。</p>
+
+<h1 id="1-数据页结构的快速浏览">1. 数据页结构的快速浏览</h1>
+
+<p>数据页代表的这块<code class="language-plaintext highlighter-rouge">16KB</code>大小的存储空间可以被划分为多个部分，不同部分有不同的功能，各个部分如图所示：</p>
+
+<p><img src="/images/posts/mysql/mysql_10.PNG" alt="mysql10" /></p>
+
+<p>从图中可以看出，一个<code class="language-plaintext highlighter-rouge">InnoDB</code>数据页的存储空间大致被划分成了<code class="language-plaintext highlighter-rouge">7</code>个部分，有的部分占用的字节数是确定的，有的部分占用的字节数是不确定的。</p>
+
+<p><br /></p>
+
+<h1 id="2-记录在页中的存储">2. 记录在页中的存储</h1>
+
+<p>在上图的7个部分中，<code class="language-plaintext highlighter-rouge">User Records</code>部分是存储记录的。其实，一开始是没有<code class="language-plaintext highlighter-rouge">User Records</code>这部分的，每当我们插入一条记录，都会从<code class="language-plaintext highlighter-rouge">Free Space</code>部分，也就是尚未使用的存储空间中申请一个记录大小的空间划分到<code class="language-plaintext highlighter-rouge">User Records</code>部分，当<code class="language-plaintext highlighter-rouge">Free Space</code>部分的空间全部被<code class="language-plaintext highlighter-rouge">User Records</code>部分替代掉之后，也就意味着这个页使用完了，如果还有新的记录插入的话，就需要去申请新的页了。</p>
+
+<p><img src="/images/posts/mysql/mysql_11.png" alt="mysql11" /></p>
+
+<p><code class="language-plaintext highlighter-rouge">InnoDB</code>管理<code class="language-plaintext highlighter-rouge">User Records</code>是很复杂的过程，并不是把记录直接放在<code class="language-plaintext highlighter-rouge">User Records</code>部分就完成了。我们先从记录头信息来理解这个过程。</p>
+
+<h2 id="21-记录头信息">2.1 记录头信息</h2>
+
+<p>先建一个表：</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">mysql</span><span class="o">&gt;</span> <span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">page_demo</span><span class="p">(</span>
+    <span class="o">-&gt;</span>     <span class="n">c1</span> <span class="nb">INT</span><span class="p">,</span>
+    <span class="o">-&gt;</span>     <span class="n">c2</span> <span class="nb">INT</span><span class="p">,</span>
+    <span class="o">-&gt;</span>     <span class="n">c3</span> <span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">10000</span><span class="p">),</span>
+    <span class="o">-&gt;</span>     <span class="k">PRIMARY</span> <span class="k">KEY</span> <span class="p">(</span><span class="n">c1</span><span class="p">)</span>
+    <span class="o">-&gt;</span> <span class="p">)</span> <span class="n">CHARSET</span><span class="o">=</span><span class="n">ascii</span> <span class="n">ROW_FORMAT</span><span class="o">=</span><span class="n">Compact</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>这个新创建的<code class="language-plaintext highlighter-rouge">page_demo</code>表有3个列，其中<code class="language-plaintext highlighter-rouge">c1</code>和<code class="language-plaintext highlighter-rouge">c2</code>列是用来存储整数的，<code class="language-plaintext highlighter-rouge">c3</code>列是用来存储字符串的。需要注意的是，我们把 <strong><em>c1</em></strong> 列指定为主键，所以在具体的行格式中<code class="language-plaintext highlighter-rouge">InnoDB</code>就没必要为我们去创建那个所谓的 <strong><em>row_id</em></strong> 隐藏列了。而且我们为这个表指定了<code class="language-plaintext highlighter-rouge">ascii</code>字符集以及<code class="language-plaintext highlighter-rouge">Compact</code>的行格式。所以这个表中记录的行格式示意图就是这样的：</p>
+
+<p><img src="/images/posts/mysql/mysql_12.png" alt="mysql12" /></p>
+
+<p>记录头中的属性如下：</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">名称</th>
+      <th style="text-align: center">大小（单位：bit）</th>
+      <th style="text-align: center">描述</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">预留位1</code></td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td style="text-align: center">没有使用</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">预留位2</code></td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td style="text-align: center">没有使用</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">delete_mask</code></td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td style="text-align: center">标记该记录是否被删除</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">min_rec_mask</code></td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">1</code></td>
+      <td style="text-align: center">B+树的每层非叶子节点中的最小记录都会添加该标记</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">n_owned</code></td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">4</code></td>
+      <td style="text-align: center">表示当前记录拥有的记录数</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">heap_no</code></td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">13</code></td>
+      <td style="text-align: center">表示当前记录在记录堆的位置信息</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">record_type</code></td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">3</code></td>
+      <td style="text-align: center">表示当前记录的类型，<code class="language-plaintext highlighter-rouge">0</code>表示普通记录，<code class="language-plaintext highlighter-rouge">1</code>表示B+树非叶节点记录，<code class="language-plaintext highlighter-rouge">2</code>表示最小记录，<code class="language-plaintext highlighter-rouge">3</code>表示最大记录</td>
+    </tr>
+    <tr>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">next_record</code></td>
+      <td style="text-align: center"><code class="language-plaintext highlighter-rouge">16</code></td>
+      <td style="text-align: center">表示下一条记录的相对位置</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><img src="/images/posts/mysql/mysql_13.png" alt="mysql13" /></p>
+
+<p>我们向<code class="language-plaintext highlighter-rouge">page_demo</code>表中插入几条记录：</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">mysql</span><span class="o">&gt;</span> <span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">page_demo</span> <span class="k">VALUES</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="s1">'aaaa'</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="s1">'bbbb'</span><span class="p">),</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="s1">'cccc'</span><span class="p">),</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">400</span><span class="p">,</span> <span class="s1">'dddd'</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>为了方便大家分析这些记录在<code class="language-plaintext highlighter-rouge">页</code>的<code class="language-plaintext highlighter-rouge">User Records</code>部分中是怎么表示的，我把记录中头信息和实际的列数据都用十进制表示出来了（其实是一堆二进制位），所以这些记录的示意图就是：</p>
+
+<p><img src="/images/posts/mysql/mysql_14.png" alt="mysql14" /></p>
+
+<ul>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">delete_mask</code></p>
+
+    <p>这个属性标记着当前记录是否被删除，占用1个二进制位，值为<code class="language-plaintext highlighter-rouge">0</code>的时候代表记录并没有被删除，为<code class="language-plaintext highlighter-rouge">1</code>的时候代表记录被删除掉了。这些被删除的记录之所以不立即从磁盘上移除，是因为移除它们之后把其他的记录在磁盘上重新排列需要性能消耗，所以只是打一个删除标记而已，所有被删除掉的记录都会组成一个所谓的<code class="language-plaintext highlighter-rouge">垃圾链表</code>，在这个链表中的记录占用的空间称之为所谓的<code class="language-plaintext highlighter-rouge">可重用空间</code>，之后如果有新记录插入到表中的话，可能把这些被删除的记录占用的存储空间覆盖掉。</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">min_rec_mask</code></p>
+
+    <p>B+树的每层非叶子节点中的最小记录都会添加该标记。</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">n_owned</code></p>
+
+    <p>稍后介绍</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">heap_no</code></p>
+
+    <p>这个属性表示当前记录在本<code class="language-plaintext highlighter-rouge">页</code>中的位置，从图中可以看出来，我们插入的4条记录在本<code class="language-plaintext highlighter-rouge">页</code>中的位置分别是：<code class="language-plaintext highlighter-rouge">2</code>、<code class="language-plaintext highlighter-rouge">3</code>、<code class="language-plaintext highlighter-rouge">4</code>、<code class="language-plaintext highlighter-rouge">5</code>。<code class="language-plaintext highlighter-rouge">0</code>和<code class="language-plaintext highlighter-rouge">1</code>的记录并不是我们自己插入的，所以有时候也称为<code class="language-plaintext highlighter-rouge">伪记录</code>或者<code class="language-plaintext highlighter-rouge">虚拟记录</code>。这两个伪记录一个代表<code class="language-plaintext highlighter-rouge">最小记录</code>，一个代表<code class="language-plaintext highlighter-rouge">最大记录</code>。</p>
+
+    <p>实际上，记录也是可以比较大小的，对于一条完整的记录来说，比较记录的大小就是比较<code class="language-plaintext highlighter-rouge">主键</code>的大小。比方说我们插入的4行记录的主键值分别是：<code class="language-plaintext highlighter-rouge">1</code>、<code class="language-plaintext highlighter-rouge">2</code>、<code class="language-plaintext highlighter-rouge">3</code>、<code class="language-plaintext highlighter-rouge">4</code>，这也就意味着这4条记录的大小从小到大依次递增。</p>
+  </li>
+</ul>
+
+<p>但是不管我们向<code class="language-plaintext highlighter-rouge">页</code>中插入了多少自己的记录，<code class="language-plaintext highlighter-rouge">InnoDB</code>都规定两条伪记录分别为最小记录与最大记录。这两条记录的构造十分简单，都是由5字节大小的<code class="language-plaintext highlighter-rouge">记录头信息</code>和8字节大小的一个固定的部分组成的。</p>
+
+<p>由于这两条记录不是我们自己定义的记录，所以它们并不存放在<code class="language-plaintext highlighter-rouge">页</code>的<code class="language-plaintext highlighter-rouge">User Records</code>部分，他们被单独放在一个称为<code class="language-plaintext highlighter-rouge">Infimum + Supremum</code>的部分，如图所示：</p>
+
+<p><img src="/images/posts/mysql/mysql_15.png" alt="mysql15" /></p>
+
+<ul>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">record_type</code></p>
+
+    <p>这个属性表示当前记录的类型，一共有4种类型的记录，<code class="language-plaintext highlighter-rouge">0</code>表示普通记录，<code class="language-plaintext highlighter-rouge">1</code>表示B+树非叶节点记录，<code class="language-plaintext highlighter-rouge">2</code>表示最小记录，<code class="language-plaintext highlighter-rouge">3</code>表示最大记录。</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">next_record</code></p>
+  </li>
+</ul>
+
+<p><br /></p>
+
+<hr />
+
+<p><strong>参考文章：</strong></p>
+
+    <div style="margin-top:2em;padding:0 1.5em;border:1px solid #d3d3d3;background-color:#deebf7">
+  <h3>文档信息</h3>
+  <ul>
+    <li>版权声明：自由转载-非商用-非衍生-保持署名（<a href="http://creativecommons.org/licenses/by-nc-nd/3.0/deed.zh">创意共享3.0许可证</a>）</li>
+    <li>本文链接：<a href="http://localhost:4000//2020/07/25/mysql-innodb-page/">MySQL InnoDB数据页结构(Page Structure)</a></li>
+  </ul>
+</div>
+
+    </article>
+    <div class="share">
+      <div class="share-component"></div>
+    </div>
+    
+
+    <div class="comment">
+      
+
+  
+
+  
+        <div id="gitalk-container"></div>
+        <link rel="stylesheet" href="https://unpkg.com/gitalk/dist/gitalk.css">
+        <script src="https://unpkg.com/gitalk/dist/gitalk.min.js"></script>
+        <script>
+        var gitalk = new Gitalk({
+            id: '/2020/07/25/mysql-innodb-page/',
+            clientID: '',
+            clientSecret: '',
+            repo: '',
+            owner: '',
+            admin: [''],
+            labels: ['gitment'],
+            perPage: 50,
+        })
+        gitalk.render('gitalk-container')
+        </script>
+  
+
+
+    </div>
+  </div>
+  <div class="column one-fourth">
+    
+<h3>Search</h3>
+<div id="site_search">
+    <input style="width:96%" type="text" id="search_box" placeholder="Search">
+</div>
+
+<ul id="search_results"></ul>
+
+<link rel="stylesheet" type="text/css" href="http://localhost:4000/assets/css/modules/sidebar-search.css">
+<script src="http://localhost:4000/assets/js/simple-jekyll-search.min.js"></script>
+
+<script type="text/javascript">
+SimpleJekyllSearch({
+    searchInput: document.getElementById('search_box'),
+    resultsContainer: document.getElementById('search_results'),
+    json: 'http://localhost:4000/assets/search_data.json',
+    searchResultTemplate: '<li><a href="{url}" title="{desc}">{title}</a></li>',
+    noResultsText: 'No results found',
+    limit: 10,
+    fuzzy: false,
+    exclude: ['Welcome']
+})
+</script>
+
+    
+<h3 class="post-directory-title mobile-hidden">Table of Contents</h3>
+<div id="post-directory-module" class="mobile-hidden">
+  <section class="post-directory">
+  <!-- Links that trigger the jumping -->
+  <!-- Added by javascript below -->
+  <dl></dl>
+  </section>
+</div>
+
+<script src="http://localhost:4000/assets/js/jquery.toc.js"></script>
+
+  </div>
+</div>
+</section>
+<!-- /section.content -->
+
+    <footer class="container">
+
+      
+
+
+        <div class="site-footer" role="contentinfo">
+            <div class="copyright left mobile-block">
+                    © 2020
+                    <span title="Shihao Zhao">Shihao Zhao</span>
+                    <a href="javascript:window.scrollTo(0,0)" class="right mobile-visible">TOP</a>
+            </div>
+
+            <ul class="site-footer-links right mobile-hidden">
+                <li>
+                    <a href="javascript:window.scrollTo(0,0)" >TOP</a>
+                </li>
+            </ul>
+            <a href="https://github.com/zhaoshihao1/zhaoshihao1.github.io" target="_blank" aria-label="view source code">
+                <span class="mega-octicon octicon-mark-github" title="GitHub"></span>
+            </a>
+            <ul class="site-footer-links mobile-hidden">
+                
+                <li>
+                    <a href="http://localhost:4000/" title="Home" target="">Home</a>
+                </li>
+                
+                <li>
+                    <a href="http://localhost:4000/categories/" title="Category" target="">Category</a>
+                </li>
+                
+                <li>
+                    <a href="http://localhost:4000/leetcode/" title="Leetcode" target="">Leetcode</a>
+                </li>
+                
+                <li>
+                    <a href="http://localhost:4000/wiki/" title="Wiki" target="">Wiki</a>
+                </li>
+                
+                <li>
+                    <a href="http://localhost:4000/links/" title="Link" target="">Link</a>
+                </li>
+                
+                <li>
+                    <a href="http://localhost:4000/about/" title="About" target="">About</a>
+                </li>
+                
+                <li><a href="http://localhost:4000/feed.xml"><span class="octicon octicon-rss" style="color:orange;"></span></a></li>
+            </ul>
+
+        </div>
+    </footer>
+    <div class="tools-wrapper">
+      <a class="gotop" href="#" title="回到顶部"><span class="octicon octicon-arrow-up"></span></a>
+    </div>
+    <!-- / footer -->
+    <script src="http://localhost:4000/assets/vendor/share.js/dist/js/share.min.js"></script>
+    <script src="http://localhost:4000/assets/js/geopattern.js"></script>
+    <script>
+      jQuery(document).ready(function($) {
+        // geopattern
+        $('.geopattern').each(function(){
+          $(this).geopattern($(this).data('pattern-id'));
+        });
+       // hljs.initHighlightingOnLoad();
+      });
+    </script>
+
+    
+
+    
+
+    
+
+    
+
+    
+    <div style="display:none">
+      <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-80669434-1', 'auto');
+        ga('send', 'pageview');
+
+      </script>
+    </div>
+    
+</body>
+</html>

@@ -6,13 +6,15 @@
       - Algorithm
       - Operating System
 
-- name: Software Engineer Skills
+- name: Software Developer Skills
   keywords:
       - Java
       - C
-      - Git
+      - Git/GitHub
       - HTML/CSS
       - Javascript
       - MySQL
       - Python
+      - Spring framework
+      - Spring Boot
 

@@ -8,9 +8,11 @@ menu: 关于
 permalink: /about/
 ---
 
+
 I'm Shihao Zhao, a software developer.
 
 Currently living in Markham, Ontario, Canada.
+
 
 ## Contact(联系)
 
